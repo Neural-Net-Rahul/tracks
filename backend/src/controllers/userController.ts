@@ -44,4 +44,37 @@ const register : RequestHandler = async (req: Request, res: Response) : Promise<
     }
 }
 
-export {register};
+const login: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      res.status(400).json({ message: "Email and Password are compulsory" });
+      return;
+    }
+
+    const user = await client.user.findFirst({ where: { email } });
+    if (!user) {
+      res.status(404).json({ message: "User does not exist" });
+      return;
+    }
+
+    const dbPassword = user.password;
+    const isSame = await bcrypt.compare(password, dbPassword);
+
+    if (!isSame) {
+      res.status(400).json({ message: "Incorrect password" });
+      return;
+    }
+
+    const token = generateToken(user.id);
+    res.status(200).json({ message: "Logged in successfully", token });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+export {register, login};

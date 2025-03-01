@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { z } from "zod";
+import '../design/Signup.css'
 
 export const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters long"),
@@ -22,6 +23,7 @@ const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [image, setImage] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -61,6 +63,7 @@ const Signup = () => {
         formData.append('profilePic',image);
       }
       try{
+        setLoading(true);
         const response = await axios.post('http://localhost:3000/api/users/register',formData,  {
           headers: { "Content-Type": "multipart/form-data" }
         });
@@ -76,6 +79,7 @@ const Signup = () => {
         }
       }
       catch(e){
+        setLoading(false);
         if((e as unknown as any).status === 409){
           alert('User already exists with this email');
           return;
@@ -152,7 +156,7 @@ const Signup = () => {
               color: darkMode ? "#fff" : "#000",
             }}
             placeholder="Your name"
-            onChange={(e)=>{
+            onChange={(e) => {
               setUsername(e.target.value);
             }}
             required
@@ -172,7 +176,7 @@ const Signup = () => {
               color: darkMode ? "#fff" : "#000",
             }}
             placeholder="example@xyz.com"
-            onChange={(e)=>{
+            onChange={(e) => {
               setEmail(e.target.value);
             }}
             required
@@ -192,7 +196,7 @@ const Signup = () => {
               color: darkMode ? "#fff" : "#000",
             }}
             placeholder="At least 8 characters"
-            onChange={(e)=>{
+            onChange={(e) => {
               setPassword(e.target.value);
             }}
             required
@@ -202,8 +206,8 @@ const Signup = () => {
           <input
             type="file"
             accept="image/*"
-            onChange={(e)=>{
-              if(e.target.files){
+            onChange={(e) => {
+              if (e.target.files) {
                 setImage(e.target.files[0]);
               }
             }}
@@ -250,7 +254,7 @@ const Signup = () => {
           <p style={{ marginTop: "15px", fontSize: "0.9rem" }}>
             Already have an account?{" "}
             <Link
-              to='/login'
+              to="/login"
               style={{
                 color: "#007bff",
                 textDecoration: "none",
@@ -268,6 +272,8 @@ const Signup = () => {
           </p>
         </div>
       </div>
+
+      {loading && <div className="loader"></div>}
 
       {/* Right Half */}
       <div

@@ -8,4 +8,5 @@ const userController_1 = require("../controllers/userController");
 const multer_1 = require("../middlewares/multer");
 const userRoute = express_1.default.Router();
 userRoute.post("/register", multer_1.upload.fields([{ name: "profilePic", maxCount: 1 }]), userController_1.register);
+userRoute.post("/login", userController_1.login);
 exports.default = userRoute;

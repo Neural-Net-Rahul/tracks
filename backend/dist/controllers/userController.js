@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.register = void 0;
+exports.login = exports.register = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const app_1 = require("../app");
 const cloudinary_1 = require("../utils/cloudinary");
@@ -57,3 +57,30 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.register = register;
+const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            res.status(400).json({ message: "Email and Password are compulsory" });
+            return;
+        }
+        const user = yield app_1.client.user.findFirst({ where: { email } });
+        if (!user) {
+            res.status(404).json({ message: "User does not exist" });
+            return;
+        }
+        const dbPassword = user.password;
+        const isSame = yield bcryptjs_1.default.compare(password, dbPassword);
+        if (!isSame) {
+            res.status(400).json({ message: "Incorrect password" });
+            return;
+        }
+        const token = generateToken(user.id);
+        res.status(200).json({ message: "Logged in successfully", token });
+    }
+    catch (error) {
+        console.error("Login error:", error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+});
+exports.login = login;
