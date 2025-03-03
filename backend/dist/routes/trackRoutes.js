@@ -13,4 +13,8 @@ trackRoute.post("/createPage", auth_1.default, trackController_1.createPage);
 trackRoute.post("/deleteTrack", auth_1.default, trackController_1.deleteTrack);
 trackRoute.post("/nextPage", auth_1.default, trackController_1.nextPage);
 trackRoute.post("/deletePage", auth_1.default, trackController_1.deletePage);
+trackRoute.post("/pageData", auth_1.default, trackController_1.sentPageData);
+trackRoute.post("/getEditorApiKey", auth_1.default, trackController_1.getEditorApiKey);
+trackRoute.post("/prevPage", auth_1.default, trackController_1.prevPage);
+trackRoute.post("/savePage", auth_1.default, trackController_1.savePage);
 exports.default = trackRoute;

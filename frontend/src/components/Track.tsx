@@ -60,24 +60,60 @@ const Track = () => {
     setTags(tags.filter((_, i) => i !== index));
   };
 
-  const movePageUp = (index:any) => {
+  const movePageUp = async(index:any) => {
     if (index === 0) return;
     let newOrder = [...order];
     [newOrder[index - 1], newOrder[index]] = [
       newOrder[index],
       newOrder[index - 1],
     ];
-    setOrder(newOrder);
+    setOrder(() => newOrder);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/");
+      }
+      await axios.post("http://localhost:3000/api/tracks/saveTrack", {
+        name: trackName,
+        tags,
+        order : newOrder,
+        trackId,
+        token,
+      });
+    } catch (e: any) {
+      if (e.response.status === 413) {
+        navigate("/");
+      }
+      alert("Some error occurred");
+    }
   };
 
-  const movePageDown = (index:any) => {
+  const movePageDown = async (index:any) => {
     if (index === order.length - 1) return;
     let newOrder = [...order];
     [newOrder[index + 1], newOrder[index]] = [
       newOrder[index],
       newOrder[index + 1],
     ];
-    setOrder(newOrder);
+    setOrder(() => newOrder);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/");
+      }
+      await axios.post("http://localhost:3000/api/tracks/saveTrack", {
+        name: trackName,
+        tags,
+        order : newOrder,
+        trackId,
+        token,
+      });
+    } catch (e: any) {
+      if (e.response.status === 413) {
+        navigate("/");
+      }
+      alert("Some error occurred");
+    }
   };
 
   const handleCreateFirstPage = async() => {
@@ -106,7 +142,7 @@ const Track = () => {
         }
         toast.success("Details Saved...");
         await axios.post('http://localhost:3000/api/tracks/saveTrack',{
-            name:trackName, tags, order, isPaid:false, isPublic:true, price:0, trackId, token
+            name:trackName, tags, order, trackId, token
         })
     }
     catch(e:any){
