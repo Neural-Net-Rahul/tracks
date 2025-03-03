@@ -1,6 +1,7 @@
 import express from 'express'
-import { login, register } from '../controllers/userController';
+import { createTrack, login, register, verifyUser } from '../controllers/userController';
 import { upload } from '../middlewares/multer';
+import verify from '../middlewares/auth';
 
 const userRoute = express.Router();
 
@@ -11,9 +12,13 @@ userRoute.post(
 );
 
 userRoute.post(
-  "/login",
-  login
+  "/verify",
+  verifyUser
 );
+
+userRoute.post("/login", login);
+
+userRoute.post("/create", verify, createTrack);
 
 
 export default userRoute;

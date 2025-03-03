@@ -5,21 +5,89 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  relationMode = "prisma"
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  name String 
-  email String @unique
-  password String 
-  profilePhoto String 
-  tracks Track[]
+  id             Int      @id @default(autoincrement())
+  name           String
+  email          String   @unique
+  password       String
+  profilePhoto   String?
+
+  tracks         Track[]          
+  comments       Comments[] 
+  contributedTracks TrackContributors[]
+  editAccess     TrackEditAccess[]  
+  boughtTracks   TrackBought[] 
 }
 
 model Track {
-  id Int @id @default(autoincrement())
-  userId Int 
-  user User @relation(fields: [userId], references: [id])
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  user           User     @relation(fields: [userId], references: [id])
+  
+  name           String   @default("My Track")
+  chaptersCount  Int      @default(0)
+  tags           String[] @default(["track"])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  contributors   TrackContributors[]
+  editAccess     TrackEditAccess[]
+  comments       Comments[]
+  order          Int[]
+  pages          Page[]
+
+  isPaid         Boolean  @default(false)
+  isPublic       Boolean  @default(true)
+  price          Int      @default(0)
+  boughtBy       TrackBought[]
 }
 
+model TrackContributors {
+  trackId Int
+  userId  Int
+  track   Track @relation(fields: [trackId], references: [id])
+  user    User  @relation(fields: [userId], references: [id])
+
+  @@id([trackId, userId])
+}
+
+model TrackEditAccess {
+  trackId Int
+  userId  Int
+  track   Track @relation(fields: [trackId], references: [id])
+  user    User  @relation(fields: [userId], references: [id])
+
+  @@id([trackId, userId])
+}
+
+model TrackBought {
+  trackId Int
+  userId  Int
+  track   Track @relation(fields: [trackId], references: [id])
+  user    User  @relation(fields: [userId], references: [id])
+
+  @@id([trackId, userId])
+}
+
+model Comments {
+  id      Int   @id @default(autoincrement())
+  userId  Int
+  trackId Int
+  content String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  track Track @relation(fields: [trackId], references: [id])
+}
+
+model Page {
+  id        Int      @id @default(autoincrement())
+  trackId   Int
+  chapterName String @default("My Page")
+  content   String   @default("My Page Content")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  track     Track   @relation(fields: [trackId], references: [id])
+}

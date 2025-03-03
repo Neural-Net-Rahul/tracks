@@ -5,8 +5,10 @@ import Home from './components/Home'
 import Login from './components/Login'
 import Signup from './components/Signup'
 import Profile from './components/Profile'
+import Track from './components/Track'
 import { RecoilRoot } from 'recoil'
 import { ToastContainer } from "react-toastify";
+import Page from './components/Page'
 import "react-toastify/dist/ReactToastify.css";
 
 const router = createBrowserRouter(
@@ -15,10 +17,16 @@ const router = createBrowserRouter(
       <Route path="/" element={<Home />}></Route>
       <Route path="/login" element={<Login />}></Route>
       <Route path="/signup" element={<Signup />}></Route>
-      <Route path='/profile'>
-        <Route path=':id' element={<Profile/>}></Route>
+      <Route path="/profile">
+        <Route path=":userId" element={<Profile />}></Route>
       </Route>
-      <Route path='/*' element={<Home/>}></Route>
+      <Route path="/create">
+        <Route path=":trackId" element={<Track />}></Route>
+      </Route>
+      <Route path="/page">
+        <Route path=":pageId" element={<Page />}></Route>
+      </Route>
+      <Route path="/*" element={<Home />}></Route>
     </>
   )
 );

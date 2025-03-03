@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.register = void 0;
+exports.createTrack = exports.verifyUser = exports.login = exports.register = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const app_1 = require("../app");
 const cloudinary_1 = require("../utils/cloudinary");
@@ -84,3 +84,41 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.login = login;
+const verifyUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id, token } = req.body;
+        const obj = jsonwebtoken_1.default.verify(token, process.env.TOKEN_SECRET);
+        if (!obj) {
+            res.status(500).json({ message: "User is not verified" });
+            return;
+        }
+        if (obj.id != id) {
+            res.status(500).json({ message: "User is not verified" });
+            return;
+        }
+        res.status(200).json({ message: "Verified User" });
+        return;
+    }
+    catch (e) {
+        res.status(500).json({ message: "User is not verified" });
+        return;
+    }
+});
+exports.verifyUser = verifyUser;
+const createTrack = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const track = yield app_1.client.track.create({
+            data: {
+                user: {
+                    connect: { id: req.id },
+                },
+            },
+        });
+        res.status(200).json({ message: "Track Created", trackId: track.id });
+    }
+    catch (e) {
+        res.status(500).json({ message: "Problem in creating track" });
+        return;
+    }
+});
+exports.createTrack = createTrack;

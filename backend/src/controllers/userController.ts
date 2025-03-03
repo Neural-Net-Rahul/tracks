@@ -10,6 +10,10 @@ const generateToken = (id:number) => {
     return token;
 }
 
+interface AuthenticatedRequest extends Request {
+  id: number;
+}
+
 const register : RequestHandler = async (req: Request, res: Response) : Promise<void> => {
     try{
         const {name, email, password} = req.body;
@@ -77,4 +81,42 @@ const login: RequestHandler = async (
   }
 };
 
-export {register, login};
+const verifyUser:RequestHandler = async(req:Request,res:Response):Promise<void> =>{
+  try{
+    const {id, token} = req.body;
+    const obj : any = jwt.verify(token,process.env.TOKEN_SECRET!);
+    if(!obj){
+      res.status(500).json({ message: "User is not verified" });
+      return;
+    }
+    if(obj.id != id){
+      res.status(500).json({ message: "User is not verified" });
+      return;
+    }
+    res.status(200).json({message:"Verified User"});
+    return;
+  }
+  catch(e){
+    res.status(500).json({message:"User is not verified"});
+    return;
+  }
+}
+
+const createTrack:RequestHandler = async (req:Request,res:Response): Promise<void> => {
+  try{
+    const track = await client.track.create({
+      data: {
+        user: {
+          connect: { id: (req as AuthenticatedRequest).id },
+        },
+      },
+    });
+    res.status(200).json({message:"Track Created",trackId:track.id});
+  }
+  catch(e){
+    res.status(500).json({message:"Problem in creating track"});
+    return;
+  }
+}
+
+export {register, login, verifyUser, createTrack};

@@ -1,1 +1,1 @@
-{"root":["./src/app.ts","./src/index.ts","./src/controllers/usercontroller.ts","./src/middlewares/multer.ts","./src/routes/userroute.ts","./src/utils/cloudinary.ts"],"version":"5.7.3"}
+{"root":["./src/app.ts","./src/index.ts","./src/controllers/trackcontroller.ts","./src/controllers/usercontroller.ts","./src/middlewares/auth.ts","./src/middlewares/multer.ts","./src/routes/trackroutes.ts","./src/routes/userroute.ts","./src/utils/cloudinary.ts"],"version":"5.7.3"}
