@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getEditorApiKey = exports.sentPageData = exports.createPage = exports.deletePage = exports.deleteTrack = exports.nextPage = exports.savePage = exports.saveTrack = exports.prevPage = exports.trackData = void 0;
+exports.tokenWatchPage = exports.noTokenWatch = exports.getEditorApiKey = exports.sentPageData = exports.createPage = exports.deletePage = exports.deleteTrack = exports.nextPage = exports.savePage = exports.saveTrack = exports.prevPage = exports.trackData = void 0;
 const app_1 = require("../app");
 const trackData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -333,3 +333,108 @@ const getEditorApiKey = (req, res) => __awaiter(void 0, void 0, void 0, function
     return;
 });
 exports.getEditorApiKey = getEditorApiKey;
+const noTokenWatch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let { pageId } = req.body;
+    pageId = Number(pageId);
+    const page = yield app_1.client.page.findFirst({
+        where: {
+            id: pageId
+        },
+        include: {
+            track: true
+        }
+    });
+    if (!page) {
+        res
+            .status(501)
+            .json({ message: "Page does not exist" }); // send to home page in frontend
+        return;
+    }
+    const isPublic = page === null || page === void 0 ? void 0 : page.track.isPublic;
+    if (!isPublic) {
+        res.status(502).json({ message: "You are not allowed to access this page" }); // send to home page in frontend
+        return;
+    }
+    const order = page.track.order;
+    if (order[0] === pageId) {
+        res
+            .status(200)
+            .json({ message: "You can access", page, order, pageNo: 1 });
+        return;
+    }
+    res.status(500).json({ message: "Please login to access this page." });
+    return;
+});
+exports.noTokenWatch = noTokenWatch;
+const tokenWatchPage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { pageId } = req.body;
+        const userId = req.id;
+        const page = yield app_1.client.page.findFirst({
+            where: {
+                id: pageId,
+            },
+        });
+        if (!page) {
+            res.status(500).json({ message: "Page does not exist" });
+            return;
+        }
+        const trackId = page.trackId;
+        const track = yield app_1.client.track.findFirst({
+            where: {
+                id: trackId,
+            },
+        });
+        const index = track.order.findIndex((pageIds) => pageIds === pageId);
+        const case1 = track.userId === userId;
+        if (case1 || (track === null || track === void 0 ? void 0 : track.isPublic)) {
+            res.status(200).json({
+                message: "Giving page data",
+                page,
+                pageNo: index + 1,
+                trackId: track.id,
+                order: track.order,
+            });
+            return;
+        }
+        const exists = yield app_1.client.trackEditAccess.findFirst({
+            where: {
+                trackId,
+                userId,
+            },
+        });
+        if (exists) {
+            res.status(200).json({
+                message: "Giving page data",
+                page,
+                pageNo: index + 1,
+                trackId: track.id,
+                order: track.order,
+            });
+        }
+        const boughtExist = yield app_1.client.trackBought.findFirst({
+            where: {
+                trackId, userId
+            }
+        });
+        if (boughtExist) {
+            res.status(200).json({
+                message: "Giving page data",
+                page,
+                pageNo: index + 1,
+                trackId: track.id,
+                order: track.order,
+            });
+            return;
+        }
+        res.status(500).json({
+            message: "Do not have right to access",
+        });
+        return;
+    }
+    catch (e) {
+        res.status(500).json({ message: "Some error occurred" });
+        return;
+    }
+});
+exports.tokenWatchPage = tokenWatchPage;

@@ -354,6 +354,115 @@ const getEditorApiKey:RequestHandler = async(req:Request,res:Response):Promise<v
   return; 
 }
 
+const noTokenWatch:RequestHandler = async(req:Request,res:Response):Promise<void> => {
+  let {pageId} = req.body;
+  pageId = Number(pageId);
+  const page = await client.page.findFirst({
+    where:{
+      id:pageId
+    },
+    include:{
+      track:true
+    }
+  })
+  if(!page){
+    res
+      .status(501)
+      .json({ message: "Page does not exist" }); // send to home page in frontend
+    return;
+  }
+  const isPublic = page?.track.isPublic;
+  if(!isPublic){
+    res.status(502).json({message:"You are not allowed to access this page"}); // send to home page in frontend
+    return;
+  }
+  const order = page.track.order;
+  if(order[0] === pageId){
+    res
+      .status(200)
+      .json({ message: "You can access", page, order, pageNo:1 });
+    return;
+  }
+  res.status(500).json({ message: "Please login to access this page." });
+  return;
+}
+
+const tokenWatchPage: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { pageId } = req.body;
+    const userId = (req as AuthenticatedRequest).id;
+    const page = await client.page.findFirst({
+      where: {
+        id: pageId,
+      },
+    });
+    if (!page) {
+      res.status(500).json({ message: "Page does not exist" });
+      return;
+    }
+    const trackId = page.trackId;
+    const track = await client.track.findFirst({
+      where: {
+        id: trackId,
+      },
+    });
+    const index = track!.order.findIndex((pageIds) => pageIds === pageId);
+    const case1 = track!.userId === userId;
+    if (case1 || track?.isPublic) {
+      res.status(200).json({
+        message: "Giving page data",
+        page,
+        pageNo: index + 1,
+        trackId: track!.id,
+        order: track!.order,
+      });
+      return;
+    }
+    const exists = await client.trackEditAccess.findFirst({
+      where: {
+        trackId,
+        userId,
+      },
+    });
+    if (exists) {
+      res.status(200).json({
+        message: "Giving page data",
+        page,
+        pageNo: index + 1,
+        trackId: track!.id,
+        order: track!.order,
+      });
+    }
+    
+    const boughtExist = await client.trackBought.findFirst({
+      where:{
+        trackId, userId
+      }
+    })
+    if(boughtExist){
+      res.status(200).json({
+        message: "Giving page data",
+        page,
+        pageNo: index + 1,
+        trackId: track!.id,
+        order: track!.order,
+      });
+      return;
+    }
+    res.status(500).json({
+      message: "Do not have right to access",
+    });
+    return;
+  } catch (e) {
+    res.status(500).json({ message: "Some error occurred" });
+    return;
+  }
+};
+
+
 export {
   trackData,
   prevPage,
@@ -364,5 +473,7 @@ export {
   deletePage,
   createPage,
   sentPageData,
-  getEditorApiKey
+  getEditorApiKey,
+  noTokenWatch,
+  tokenWatchPage,
 };

@@ -12,10 +12,10 @@ const Page = () => {
   const [content, setContent] = useState("");
   const [darkMode, setDarkMode] = useState(true);
   const navigate = useNavigate();
-  const [trackId, setTrackId] = useState('');
-  const [order,setOrder] = useState('');
-  const [apikey,setApiKey] = useState('');
-  const [pageNo, setPageNo] = useState('');
+  const [trackId, setTrackId] = useState("");
+  const [order, setOrder] = useState("");
+  const [apikey, setApiKey] = useState("");
+  const [pageNo, setPageNo] = useState("");
 
   useEffect(() => {
     const getPageData = async () => {
@@ -33,12 +33,15 @@ const Page = () => {
             token,
           }
         );
-        const res = await axios.post("http://localhost:3000/api/tracks/getEditorApiKey",{token});
+        const res = await axios.post(
+          "http://localhost:3000/api/tracks/getEditorApiKey",
+          { token }
+        );
         setApiKey(res.data.api_key);
         const data = response.data;
         const page = response.data.page;
         if (page) {
-          setLoading(loading => !loading)
+          setLoading((prevLoading) => !prevLoading);
           setChapterName(page.chapterName);
           setContent(page.content);
           setTrackId(data.trackId);
@@ -47,7 +50,9 @@ const Page = () => {
           setDarkMode(true);
         }
       } catch (e) {
-        const obj = jwtDecode<{ id: string }>(token);
+        const obj = jwtDecode<{ id: string }>(
+          localStorage.getItem("token") || ""
+        );
         navigate(`/profile/${obj.id}`);
       } finally {
         setLoading(false);
@@ -64,30 +69,36 @@ const Page = () => {
     );
   }
 
-  const handlePrevious = async() => {
-    try{
-        const token = localStorage.getItem('token') || '';
-        if(!token){
-            navigate('/');
-            return;
+  const handlePrevious = async () => {
+    try {
+      const token = localStorage.getItem("token") || "";
+      if (!token) {
+        navigate("/");
+        return;
+      }
+      toast.success("Prev Page...");
+      const response = await axios.post(
+        "http://localhost:3000/api/tracks/prevPage",
+        {
+          token,
+          trackId,
+          pageId: Number(pageId),
+          order,
         }
-        toast.success("Prev Page...")
-        const response = await axios.post('http://localhost:3000/api/tracks/prevPage',{token,trackId, pageId:Number(pageId), order});
-        const tId = response.data.trackId;
-        const pPageId = response.data.prevPageId;
-        if(pPageId){
-            navigate(`/page/${pPageId}`);
-        }
-        else{
-            navigate(`/create/${tId}`);
-        }
+      );
+      const tId = response.data.trackId;
+      const pPageId = response.data.prevPageId;
+      if (pPageId) {
+        navigate(`/page/${pPageId}`);
+      } else {
+        navigate(`/create/${tId}`);
+      }
+    } catch (e) {
+      alert("Some error occurred");
     }
-    catch(e){
-        alert('Some error occurred');
-    }
-  }
+  };
 
-  const handleSave = async()=>{
+  const handleSave = async () => {
     try {
       const token = localStorage.getItem("token") || "";
       if (!token) {
@@ -95,17 +106,18 @@ const Page = () => {
         return;
       }
       toast.success("Saving...");
-      await axios.post(
-        "http://localhost:3000/api/tracks/savePage",
-        { token, chapterName, pageId: Number(pageId), content }
-      );
-      
+      await axios.post("http://localhost:3000/api/tracks/savePage", {
+        token,
+        chapterName,
+        pageId: Number(pageId),
+        content,
+      });
     } catch (e) {
       alert("Some error occurred");
     }
-  }
+  };
 
-  const handleNext = async() => {
+  const handleNext = async () => {
     try {
       const token = localStorage.getItem("token") || "";
       if (!token) {
@@ -113,24 +125,27 @@ const Page = () => {
         return;
       }
       toast.success("Next Page...");
-      const response = await axios.post("http://localhost:3000/api/tracks/nextPage", {
-        token,
-        onPage:true, order, p_t_id:Number(pageId)
-      });
+      const response = await axios.post(
+        "http://localhost:3000/api/tracks/nextPage",
+        {
+          token,
+          onPage: true,
+          order,
+          p_t_id: Number(pageId),
+        }
+      );
       console.log(response);
-      if(response.status === 203){
-        // do nothing, as no next page exists
+      if (response.status === 203) {
         toast.success("Next Page does not exist");
-      }
-      else if(response.status === 208){
+      } else if (response.status === 208) {
         navigate(`/page/${response.data.id}`);
       }
     } catch (e) {
       alert("Some error occurred");
     }
-  }
+  };
 
-  const handleDeletePage = async() => {
+  const handleDeletePage = async () => {
     try {
       const token = localStorage.getItem("token") || "";
       if (!token) {
@@ -138,22 +153,26 @@ const Page = () => {
         return;
       }
       toast.success("Deleting...");
-      const response = await axios.post("http://localhost:3000/api/tracks/deletePage", {
-        token,
-        pageId, order, trackId
-      });
-      if(response.data.trackId){
-        navigate(`/create/${response.data.trackId}`)
-      }
-      else{
+      const response = await axios.post(
+        "http://localhost:3000/api/tracks/deletePage",
+        {
+          token,
+          pageId,
+          order,
+          trackId,
+        }
+      );
+      if (response.data.trackId) {
+        navigate(`/create/${response.data.trackId}`);
+      } else {
         navigate(`/page/${response.data.pageId}`);
       }
     } catch (e) {
       alert("Some error occurred");
     }
-  }
+  };
 
-  const handleCreateNext = async() => {
+  const handleCreateNext = async () => {
     try {
       const token = localStorage.getItem("token") || "";
       if (!token) {
@@ -161,33 +180,45 @@ const Page = () => {
         return;
       }
       toast.success("Creating next Page...");
-      const response = await axios.post("http://localhost:3000/api/tracks/createPage", {
-        token,
-        onPage:true, order, p_t_Id:Number(pageId), trackId
-      });
+      const response = await axios.post(
+        "http://localhost:3000/api/tracks/createPage",
+        {
+          token,
+          onPage: true,
+          order,
+          p_t_Id: Number(pageId),
+          trackId,
+        }
+      );
       navigate(`/page/${response.data.pId}`);
     } catch (e) {
       alert("Some error occurred");
     }
-  }
+  };
 
-  const handleGoToTrack = async() =>  {
-
-  }
+  
+  const handleGoToTrack = () => {
+    navigate(`/track/${trackId}`);
+  };
 
   return (
     <div
-      className={`min-h-screen p-6 ${
+      className={`min-h-screen p-6 w-full ${
         darkMode ? "bg-black text-white" : "bg-white text-black"
       }`}
     >
-      <div className="flex justify-around items-center">
+      {/* Header Section with responsive layout */}
+      <div className="flex flex-col md:flex-row justify-around items-center gap-4">
         <div>
-        <div className="text-lg font-semibold">Page No. {pageNo}</div>
-        <div className="text-sm text-yellow-600">For downloading PDF go to File then Export</div>
+          <div className="text-lg font-semibold">Page No. {pageNo}</div>
+          <div className="text-sm text-yellow-600">
+            For downloading PDF go to File then Export
+          </div>
         </div>
-        <div>
-          <label className="text-lg font-semibold">Chapter Name :</label>
+        <div className="w-full md:w-auto">
+          <label className="text-lg font-semibold block mb-1">
+            Chapter Name :
+          </label>
           <input
             type="text"
             value={chapterName}
@@ -198,7 +229,7 @@ const Page = () => {
         <button
           className={`px-4 py-2 border rounded ${
             !darkMode
-              ? `border-black  bg-black text-white`
+              ? "border-black bg-black text-white"
               : "border-white bg-orange-400 text-black"
           }`}
           onClick={() => setDarkMode(!darkMode)}
@@ -207,7 +238,8 @@ const Page = () => {
         </button>
       </div>
 
-      <div className="my-6 border rounded shadow-lg p-4">
+      {/* Editor Section */}
+      <div className="my-6 border rounded shadow-lg p-4 w-full">
         <Editor
           apiKey={apikey}
           value={content}
@@ -226,11 +258,7 @@ const Page = () => {
                 }
                 `,
             skin: darkMode ? "oxide-dark" : "oxide",
-            images_upload_handler: async (
-              blobInfo: any,
-              success: any,
-              failure: any
-            ) => {
+            images_upload_handler: async (blobInfo:any, success:any, failure:any) => {
               try {
                 const file = new File([blobInfo.blob()], blobInfo.filename());
                 const formData = new FormData();
@@ -298,7 +326,7 @@ const Page = () => {
               { value: "First.Name", title: "First Name" },
               { value: "Email", title: "Email" },
             ],
-            ai_request: (request: any, respondWith: any) =>
+            ai_request: (request:any, respondWith:any) =>
               respondWith.string(() =>
                 Promise.reject("See docs to implement AI Assistant")
               ),
@@ -306,7 +334,8 @@ const Page = () => {
         />
       </div>
 
-      <div className="flex justify-center gap-10 mt-6">
+      {/* Buttons Section with wrapping for mobile */}
+      <div className="flex flex-wrap justify-center gap-4 mt-6">
         <button
           className={`px-4 py-2 border rounded ${
             !darkMode ? "bg-black text-white" : "bg-white text-black"
@@ -354,7 +383,7 @@ const Page = () => {
           className={`px-4 py-2 border rounded border-black text-red-500 ${
             !darkMode
               ? "bg-white text-black"
-              : "bg-black text-red-500 border-white "
+              : "bg-black text-red-500 border-white"
           }`}
           onClick={handleDeletePage}
         >

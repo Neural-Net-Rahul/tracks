@@ -10,6 +10,8 @@ import { RecoilRoot } from 'recoil'
 import { ToastContainer } from "react-toastify";
 import Page from './components/Page'
 import "react-toastify/dist/ReactToastify.css";
+import WatchTrack from './components/WatchTrack'
+import WatchPage from './components/WatchPage'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -26,6 +28,12 @@ const router = createBrowserRouter(
       <Route path="/page">
         <Route path=":pageId" element={<Page />}></Route>
       </Route>
+      <Route path="/watch/track">
+        <Route path=":trackId" element={<WatchTrack />}></Route>
+      </Route>
+      <Route path="/watch/page">
+        <Route path=":pageId" element={<WatchPage />}></Route>
+      </Route>
       <Route path="/*" element={<Home />}></Route>
     </>
   )
@@ -34,6 +42,6 @@ const router = createBrowserRouter(
 createRoot(document.getElementById("root")!).render(
   <RecoilRoot>
     <RouterProvider router={router} />
-    <ToastContainer position="top-right" autoClose={3000} />
+    <ToastContainer position="top-right" autoClose={2000} />
   </RecoilRoot>
 );
