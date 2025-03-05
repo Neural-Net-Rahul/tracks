@@ -64,7 +64,7 @@ const Signup = () => {
       }
       try{
         setLoading(true);
-        const response = await axios.post('http://localhost:3000/api/users/register',formData,  {
+        const response = await axios.post('https://tracks-2qce.onrender.com/api/users/register',formData,  {
           headers: { "Content-Type": "multipart/form-data" }
         });
         if(response.status === 200){
