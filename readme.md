@@ -10,7 +10,7 @@ The **Tracks Project** is a web application that allows users to **create, edit,
 - ✏️ **Edit Tracks** – Modify existing tracks and update details.
 - 📄 **Multiple Pages per Track** – Organize content into separate pages within a track.
 - ⬇️ **Download Pages** – Save individual track pages for offline use.
-- 🔍 **Advanced Search** – Find tracks using substrings and subsequences in names or tags.
+- 🔍 **Advanced Search** – Find tracks using substrings in names or tags.
 - 🕒 **Auto-Sorting** – Tracks are sorted based on the latest updates.
 
 ## 🚀 Installation & Setup
@@ -51,7 +51,7 @@ Feel free to contribute! Submit issues, feature requests, or pull requests to im
 
 ## 📧 Contact
 
-For any queries, reach out via [your-email@example.com](mailto\:your-email@example.com) or open an issue on GitHub.
+For any queries, reach out via [rahul769311@gmail.com](mailto\:rahul769311@gmail.com) or open an issue on GitHub.
 
 ---
 
