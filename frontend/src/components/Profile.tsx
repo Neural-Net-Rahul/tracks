@@ -29,7 +29,7 @@ const Profile: React.FC = () => {
           return;
         }
         setLoading(true);
-        const response = await axios.post("http://localhost:3000/api/users/getUserData",{token});
+        const response = await axios.post("https://tracks-2qce.onrender.com/api/users/getUserData",{token});
         const userData = response.data.userData;
         setName(userData.name)
         setEmail(userData.email);
@@ -63,7 +63,7 @@ const Profile: React.FC = () => {
       navigate('/');
     }
     try{
-      const response = await axios.post("http://localhost:3000/api/tracks/changeTrackStatus", {
+      const response = await axios.post("https://tracks-2qce.onrender.com/api/tracks/changeTrackStatus", {
         token,
         trackId: id,
       });
@@ -97,7 +97,7 @@ const Profile: React.FC = () => {
         navigate('/');
         return;
       }
-      const response = await axios.post("http://localhost:3000/api/users/create",{token});
+      const response = await axios.post("https://tracks-2qce.onrender.com/api/users/create",{token});
       navigate(`/create/${response.data.trackId}`);
     }
     catch(e){
