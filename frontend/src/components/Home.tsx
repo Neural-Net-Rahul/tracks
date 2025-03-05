@@ -26,7 +26,7 @@ const Home = () => {
     const getTracks = async() => {
       try{
         setLoading(true);
-        const response = await axios.get('https://tracks-2qce.onrender.com/api/tracks/getAllTracks');
+        const response = await axios.get('https://tracks-cwh2.onrender.com/api/tracks/getAllTracks');
         console.log(response);
         const allTracks = response.data.tracks.sort((a:any, b:any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
         setTracks(allTracks);
