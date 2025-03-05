@@ -19,7 +19,6 @@ The **Tracks Project** is a web application that allows users to **create, edit,
 
 ```sh
 git clone https://github.com/Neural-Net-Rahul/tracks.git
-cd tracks-project
 ```
 
 ### 2️⃣ **Install Dependencies**
