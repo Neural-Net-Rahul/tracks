@@ -119,4 +119,37 @@ const createTrack:RequestHandler = async (req:Request,res:Response): Promise<voi
   }
 }
 
-export {register, login, verifyUser, createTrack};
+const getUserData: RequestHandler = async (req:Request,res:Response):Promise<void> => {
+  try{
+    const userData = await client.user.findFirst({
+      where:{
+        id: (req as AuthenticatedRequest).id
+      },
+      include:{
+        tracks:true
+      }
+    })
+    res.status(200).json({message:"Sending user data",userData});
+    return;
+  }
+  catch(e){
+    res.status(500).json({message:"Error while sending user data"});
+    return;
+  }
+}
+
+const uploadImage:RequestHandler = async(req:Request,res:Response):Promise<void> => {
+  try{
+    const filePath = (req.files as { [fieldname: string]: Express.Multer.File[] })?.image?.[0].path;
+    const file = await uploadOnCloudinary(filePath);
+    res.status(200).json({message:"Image uploaded",url:file?.url});
+    return;
+  }
+  catch(e){
+    res.status(500).json({message:"Error while uploading image"});
+    return;
+  }
+}
+
+
+export {register, login, verifyUser, createTrack, getUserData, uploadImage};

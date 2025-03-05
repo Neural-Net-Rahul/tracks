@@ -45,7 +45,7 @@ const Home = () => {
   }
 
   const handleProfile = () => {
-    const token = localStorage.getItem("token") || "";
+    const token = localStorage.getItem('token') || "";
     if (!token) {
       navigate("/");
     } else {
@@ -75,8 +75,15 @@ const Home = () => {
   };
 
   const handleLogout = () => {
+    const token = localStorage.getItem('token') || '';
+    if(!token){
+      navigate('/login');
+      return;
+    }
     localStorage.removeItem('token');
-    navigate('/login');
+    setTimeout(() => {
+      navigate("/login");
+    },2000)
   }
 
   if(loading){
@@ -96,7 +103,7 @@ const Home = () => {
         </div>
         <div className="header-right flex flex-row gap-2">
           <button onClick={handleProfile}>Profile</button>
-          <button onClick={handleLogout}>Logout</button>
+          {localStorage.getItem('token')?<button onClick={handleLogout}>Logout</button>:<button onClick={handleLogout}>Login</button>}
           <button onClick={toggleDarkMode} className="dark-mode-toggle">
             {darkMode ? "Light Mode" : "Dark Mode"}
           </button>
@@ -115,7 +122,7 @@ const Home = () => {
             onChange={handleSearchChange}
             placeholder="Search tracks..."
             className="search-bar"
-            style={{color:"black"}}
+            style={{ color: "black" }}
           />
         </section>
 
@@ -130,7 +137,7 @@ const Home = () => {
                     className="track-image"
                   />
                   <div className="track-details">
-                    <h3>{track.name}</h3>
+                    <h3 className="text-xl">{track.name}</h3>
                     <p>
                       <strong>Created:</strong>{" "}
                       {new Intl.DateTimeFormat("en-US", {

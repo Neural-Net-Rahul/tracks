@@ -12,4 +12,6 @@ userRoute.post("/register", multer_1.upload.fields([{ name: "profilePic", maxCou
 userRoute.post("/verify", userController_1.verifyUser);
 userRoute.post("/login", userController_1.login);
 userRoute.post("/create", auth_1.default, userController_1.createTrack);
+userRoute.post("/getUserData", auth_1.default, userController_1.getUserData);
+userRoute.post("/uploadImage", auth_1.default, multer_1.upload.fields([{ name: "image", maxCount: 1 }]), userController_1.uploadImage);
 exports.default = userRoute;

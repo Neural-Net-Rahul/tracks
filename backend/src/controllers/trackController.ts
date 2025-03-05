@@ -576,6 +576,40 @@ const getAllTracks:RequestHandler = async(req:Request,res:Response):Promise<void
   }
 }
 
+const changeTrackStatus:RequestHandler = async(req:Request,res:Response):Promise<void> => {
+  try{
+    const {trackId} = req.body;
+    const track = await client.track.findFirst({
+      where:{
+        id:trackId
+      }
+    })
+    const publicStatus = track?.isPublic;
+    await client.track.update({
+      where: {
+        id: trackId,
+      },
+      data: {
+        isPublic: !publicStatus
+      },
+    });
+    const newTracks = await client.user.findFirst({
+      where:{
+        id:track?.userId
+      },
+      include:{
+        tracks:true
+      }
+    })
+    res.status(200).json({ message: "Status changed" , track:newTracks?.tracks});
+    return;
+  }
+  catch(e){
+    res.status(500).json({message:"Error in changing track status"});
+    return;
+  }
+};
+
 export {
   trackData,
   prevPage,
@@ -591,5 +625,6 @@ export {
   tokenWatchPage,
   noTokenWatchTrack,
   tokenWatchTrack,
-  getAllTracks
+  getAllTracks,
+  changeTrackStatus
 };

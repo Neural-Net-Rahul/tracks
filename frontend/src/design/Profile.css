@@ -1,0 +1,136 @@
+/* Base layout */
+.profile-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Header styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #ddd;
+}
+.header h1 {
+  margin: 0;
+}
+.header-buttons {
+  display: flex;
+}
+.button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 8px;
+  font-size: 14px;
+}
+.button-toggle {
+  background-color: #007bff;
+  color: #fff;
+}
+.button-home {
+  background-color: #df4725;
+  color: #fff;
+}
+.button-create {
+  background-color: #28a745;
+  color: #fff;
+  border: 4px solid rgb(255, 0, 0);
+}
+
+/* Layout for content */
+.content-container {
+  display: flex;
+  flex: 1;
+}
+
+/* Sidebar styling */
+.sidebar {
+  width: 200px;
+  padding: 16px;
+  border-right: 1px solid #ddd;
+}
+.sidebar button {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 8px;
+  background-color: transparent;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.sidebar button.active,
+.sidebar button:hover {
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 4px;
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  padding: 16px;
+}
+
+/* User Details styling */
+.user-details {
+  text-align: center;
+}
+.user-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  margin-bottom: 16px;
+}
+
+/* Light mode specific styles */
+.light-mode {
+  background-color: #f5f5f5;
+  color: #292828;
+}
+.light-mode .header {
+  background-color: #fff;
+}
+.light-mode .sidebar {
+  background-color: #fff;
+}
+
+/* Dark mode specific styles */
+.dark-mode {
+  background-color: #151515;
+  color: #f5f5f5;
+}
+.dark-mode .header {
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #333;
+}
+.dark-mode .sidebar {
+  background-color: #1e1e1e;
+  border-right: 1px solid #333;
+}
+.dark-mode .button-toggle {
+  background-color: #444;
+}
+.dark-mode .button-home {
+  background-color: #444;
+}
+.dark-mode .button-create {
+  background-color: #555;
+  border: 2px solid rgb(255, 0, 0);
+}
+
+.dark-mode .tracks-grid {
+  color:black;
+}
+
+.dark-mode .track-card {
+  background-color: black;
+  color: white;
+}

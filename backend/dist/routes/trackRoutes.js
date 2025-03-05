@@ -25,4 +25,5 @@ trackRoute.post("/noTokenWatch", trackController_1.noTokenWatch);
 trackRoute.post("/noTokenWatchTrack", trackController_1.noTokenWatchTrack);
 trackRoute.post("/tokenWatchTrack", auth_1.default, trackController_1.tokenWatchTrack);
 trackRoute.get("/getAllTracks", trackController_1.getAllTracks);
+trackRoute.post("/changeTrackStatus", auth_1.default, trackController_1.changeTrackStatus);
 exports.default = trackRoute;

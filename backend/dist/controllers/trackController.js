@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllTracks = exports.tokenWatchTrack = exports.noTokenWatchTrack = exports.tokenWatchPage = exports.noTokenWatch = exports.getEditorApiKey = exports.sentPageData = exports.createPage = exports.deletePage = exports.deleteTrack = exports.nextPage = exports.savePage = exports.saveTrack = exports.prevPage = exports.trackData = void 0;
+exports.changeTrackStatus = exports.getAllTracks = exports.tokenWatchTrack = exports.noTokenWatchTrack = exports.tokenWatchPage = exports.noTokenWatch = exports.getEditorApiKey = exports.sentPageData = exports.createPage = exports.deletePage = exports.deleteTrack = exports.nextPage = exports.savePage = exports.saveTrack = exports.prevPage = exports.trackData = void 0;
 const app_1 = require("../app");
 const cloudinary_1 = require("../utils/cloudinary");
 const trackData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -546,3 +546,37 @@ const getAllTracks = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.getAllTracks = getAllTracks;
+const changeTrackStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { trackId } = req.body;
+        const track = yield app_1.client.track.findFirst({
+            where: {
+                id: trackId
+            }
+        });
+        const publicStatus = track === null || track === void 0 ? void 0 : track.isPublic;
+        yield app_1.client.track.update({
+            where: {
+                id: trackId,
+            },
+            data: {
+                isPublic: !publicStatus
+            },
+        });
+        const newTracks = yield app_1.client.user.findFirst({
+            where: {
+                id: track === null || track === void 0 ? void 0 : track.userId
+            },
+            include: {
+                tracks: true
+            }
+        });
+        res.status(200).json({ message: "Status changed", track: newTracks === null || newTracks === void 0 ? void 0 : newTracks.tracks });
+        return;
+    }
+    catch (e) {
+        res.status(500).json({ message: "Error in changing track status" });
+        return;
+    }
+});
+exports.changeTrackStatus = changeTrackStatus;

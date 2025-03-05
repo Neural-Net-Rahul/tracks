@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createTrack = exports.verifyUser = exports.login = exports.register = void 0;
+exports.uploadImage = exports.getUserData = exports.createTrack = exports.verifyUser = exports.login = exports.register = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const app_1 = require("../app");
 const cloudinary_1 = require("../utils/cloudinary");
@@ -122,3 +122,36 @@ const createTrack = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.createTrack = createTrack;
+const getUserData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userData = yield app_1.client.user.findFirst({
+            where: {
+                id: req.id
+            },
+            include: {
+                tracks: true
+            }
+        });
+        res.status(200).json({ message: "Sending user data", userData });
+        return;
+    }
+    catch (e) {
+        res.status(500).json({ message: "Error while sending user data" });
+        return;
+    }
+});
+exports.getUserData = getUserData;
+const uploadImage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const filePath = (_b = (_a = req.files) === null || _a === void 0 ? void 0 : _a.image) === null || _b === void 0 ? void 0 : _b[0].path;
+        const file = yield (0, cloudinary_1.uploadOnCloudinary)(filePath);
+        res.status(200).json({ message: "Image uploaded", url: file === null || file === void 0 ? void 0 : file.url });
+        return;
+    }
+    catch (e) {
+        res.status(500).json({ message: "Error while uploading image" });
+        return;
+    }
+});
+exports.uploadImage = uploadImage;

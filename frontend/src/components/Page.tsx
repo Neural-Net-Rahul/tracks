@@ -16,6 +16,7 @@ const Page = () => {
   const [order, setOrder] = useState("");
   const [apikey, setApiKey] = useState("");
   const [pageNo, setPageNo] = useState("");
+  const [imageLink, setImageLink] = useState("");
 
   useEffect(() => {
     const getPageData = async () => {
@@ -198,8 +199,42 @@ const Page = () => {
 
   
   const handleGoToTrack = () => {
-    navigate(`/create/${trackId}`);
+    try{
+      navigate(`/create/${trackId}`);
+    }
+    catch(e){
+      alert('Error occurred while saving...');
+    }
   };
+
+  const handleFileUpload = async (event:any) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:3000/api/users/uploadImage", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        setImageLink(data.url);
+      } else {
+        alert("Failed to upload image. Please try again.");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("An error occurred while uploading the image.");
+    }
+  }
 
   return (
     <div
@@ -238,6 +273,16 @@ const Page = () => {
         </button>
       </div>
 
+      <br />
+      <p>
+        <strong>Note:</strong> Images can only be uploaded using a URL. If you
+        want to upload an image from your computer, please select a file, and we
+        will generate a shareable link for you.
+      </p>
+
+      <input type="file" onChange={handleFileUpload} accept="image/*" />
+      <div>{imageLink}</div>
+
       {/* Editor Section */}
       <div className="my-6 border rounded shadow-lg p-4 w-full">
         <Editor
@@ -258,23 +303,6 @@ const Page = () => {
                 }
                 `,
             skin: darkMode ? "oxide-dark" : "oxide",
-            images_upload_handler: async (blobInfo:any, success:any, failure:any) => {
-              try {
-                const file = new File([blobInfo.blob()], blobInfo.filename());
-                const formData = new FormData();
-                formData.append("image", file);
-
-                const response = await axios.post(
-                  "http://localhost:3000/api/uploadImage",
-                  formData,
-                  { headers: { "Content-Type": "multipart/form-data" } }
-                );
-
-                success(response.data.imageUrl);
-              } catch (error) {
-                failure("Image upload failed.");
-              }
-            },
             plugins: [
               "anchor",
               "autolink",
@@ -326,7 +354,7 @@ const Page = () => {
               { value: "First.Name", title: "First Name" },
               { value: "Email", title: "Email" },
             ],
-            ai_request: (request:any, respondWith:any) =>
+            ai_request: (request: any, respondWith: any) =>
               respondWith.string(() =>
                 Promise.reject("See docs to implement AI Assistant")
               ),

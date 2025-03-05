@@ -14,6 +14,8 @@ export const loginSchema = z.object({
 
 const Login = () => {
   const [darkMode, setDarkMode] = useState(true);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupEmail, setPopupEmail] = useState('');
   const isAuth = useRecoilValue(isAuthenticated);
   const [email,setEmail] = useState('');
   const [password,setPassword] = useState('');
@@ -57,6 +59,33 @@ const Login = () => {
     }
   }
 
+  const handleForgotPassword = () => {
+    setShowPopup(true);
+  };
+
+    const generateRandomPassword = (length = 12) => {
+      const chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+      return Array.from(
+        { length },
+        () => chars[Math.floor(Math.random() * chars.length)]
+      ).join("");
+    };
+
+  const handleSendResetLink = () => {
+    if (!popupEmail) {
+      alert("Please enter your email.");
+      return;
+    }
+
+    const newPassword = generateRandomPassword();
+
+    navigator.clipboard.writeText(newPassword).then(() => {
+      alert("Password copied to clipboard: " + newPassword);
+    });
+    setShowPopup(false);
+  };
+
   const toggleTheme = () => {
     setDarkMode(!darkMode);
   };
@@ -78,6 +107,39 @@ const Login = () => {
         transition: "background-color 0.3s ease, color 0.3s ease",
       }}
     >
+      {showPopup && (
+        <div className="fixed z-10 inset-0 flex items-center justify-center bg-black bg-opacity-10">
+          <div className="bg-white p-6 rounded shadow-lg">
+            <h2 className="text-xl font-bold mb-2">Reset Password</h2>
+            <p className="text-gray-600 mb-4">
+              Enter your email to receive a new password
+            </p>
+
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={popupEmail}
+              onChange={(e) => setPopupEmail(e.target.value)}
+              className="w-full p-2 border rounded mb-4 text-black"
+            />
+
+            <div className="flex justify-between">
+              <button
+                onClick={handleSendResetLink}
+                className="px-4 py-2 bg-green-500 text-white rounded"
+              >
+                Generate new password
+              </button>
+              <button
+                onClick={() => setShowPopup(false)}
+                className="px-4 py-2 bg-red-500 text-white rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Left Half */}
       <div
         style={{
@@ -160,7 +222,7 @@ const Login = () => {
           />
 
           <div style={{ textAlign: "right", marginBottom: "15px" }}>
-            <a
+            {/* <a
               href="#"
               style={{
                 fontSize: "0.85rem",
@@ -168,6 +230,7 @@ const Login = () => {
                 textDecoration: "none",
                 transition: "text-decoration 0.3s",
               }}
+              onClick={handleForgotPassword}
               onMouseEnter={(e) =>
                 ((e.target as HTMLAnchorElement).style.textDecoration =
                   "underline")
@@ -177,7 +240,7 @@ const Login = () => {
               }
             >
               Forgot password?
-            </a>
+            </a> */}
           </div>
 
           <button

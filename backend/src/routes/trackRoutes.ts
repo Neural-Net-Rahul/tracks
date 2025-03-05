@@ -1,6 +1,6 @@
 import express from "express";
 import verify from "../middlewares/auth";
-import {createPage, deletePage, deleteTrack, getAllTracks, getEditorApiKey, nextPage, noTokenWatch, noTokenWatchTrack, prevPage, savePage, saveTrack, sentPageData, tokenWatchPage, tokenWatchTrack, trackData} from "../controllers/trackController";
+import {changeTrackStatus, createPage, deletePage, deleteTrack, getAllTracks, getEditorApiKey, nextPage, noTokenWatch, noTokenWatchTrack, prevPage, savePage, saveTrack, sentPageData, tokenWatchPage, tokenWatchTrack, trackData} from "../controllers/trackController";
 import { upload } from "../middlewares/multer";
 const trackRoute = express.Router();
 
@@ -21,6 +21,6 @@ trackRoute.post("/noTokenWatch", noTokenWatch);
 trackRoute.post("/noTokenWatchTrack", noTokenWatchTrack);
 trackRoute.post("/tokenWatchTrack",verify, tokenWatchTrack);
 trackRoute.get("/getAllTracks", getAllTracks);
-
+trackRoute.post("/changeTrackStatus", verify, changeTrackStatus);
 
 export default trackRoute;
