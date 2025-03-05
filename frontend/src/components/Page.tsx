@@ -354,7 +354,7 @@ const Page = () => {
               { value: "First.Name", title: "First Name" },
               { value: "Email", title: "Email" },
             ],
-            ai_request: (request: any, respondWith: any) =>
+            ai_request: (respondWith: any) =>
               respondWith.string(() =>
                 Promise.reject("See docs to implement AI Assistant")
               ),
