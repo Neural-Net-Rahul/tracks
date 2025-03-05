@@ -18,7 +18,7 @@ The **Tracks Project** is a web application that allows users to **create, edit,
 ### 1️⃣ **Clone the Repository**
 
 ```sh
-git clone https://github.com/your-username/tracks-project.git
+git clone https://github.com/Neural-Net-Rahul/tracks.git
 cd tracks-project
 ```
 
