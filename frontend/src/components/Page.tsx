@@ -28,14 +28,14 @@ const Page = () => {
       try {
         setLoading(true);
         const response = await axios.post(
-          "http://localhost:3000/api/tracks/pageData",
+          "https://tracks-2qce.onrender.com/api/tracks/pageData",
           {
             pageId: Number(pageId),
             token,
           }
         );
         const res = await axios.post(
-          "http://localhost:3000/api/tracks/getEditorApiKey",
+          "https://tracks-2qce.onrender.com/api/tracks/getEditorApiKey",
           { token }
         );
         setApiKey(res.data.api_key);
