@@ -34,7 +34,7 @@ const Track = () => {
       try {
         setLoading((prev) => !prev);
         const response = await axios.post(
-          "https://tracks-2qce.onrender.com/api/tracks/trackData",
+          "https://tracks-cwh2.onrender.com/api/tracks/trackData",
           { trackId, token }
         );
         const track = response.data.track;
@@ -82,7 +82,7 @@ const Track = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) navigate("/");
-      await axios.post("https://tracks-2qce.onrender.com/api/tracks/saveTrack", {
+      await axios.post("https://tracks-cwh2.onrender.com/api/tracks/saveTrack", {
         name: trackName,
         tags,
         order: newOrder,
@@ -106,7 +106,7 @@ const Track = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) navigate("/");
-      await axios.post("https://tracks-2qce.onrender.com/api/tracks/saveTrack", {
+      await axios.post("https://tracks-cwh2.onrender.com/api/tracks/saveTrack", {
         name: trackName,
         tags,
         order: newOrder,
@@ -125,7 +125,7 @@ const Track = () => {
       if (!token) navigate("/");
       toast.success("Creating first page...");
       const response = await axios.post(
-        "https://tracks-2qce.onrender.com/api/tracks/createPage",
+        "https://tracks-cwh2.onrender.com/api/tracks/createPage",
         {
           onPage: false,
           order,
@@ -155,7 +155,7 @@ const Track = () => {
       if(trackImage){
         formData.append("image", trackImage);
       }
-      await axios.post("https://tracks-2qce.onrender.com/api/tracks/saveTrack", formData,{
+      await axios.post("https://tracks-cwh2.onrender.com/api/tracks/saveTrack", formData,{
         headers:{
           "Authorization":`Bearer ${token}`
         }
@@ -173,7 +173,7 @@ const Track = () => {
       if (!token) navigate("/");
       toast.success("Searching for next page...");
       const response = await axios.post(
-        "https://tracks-2qce.onrender.com/api/tracks/nextPage",
+        "https://tracks-cwh2.onrender.com/api/tracks/nextPage",
         {
           order,
           onPage: false,
@@ -196,7 +196,7 @@ const Track = () => {
       const token = localStorage.getItem("token") || "";
       if (!token) navigate("/");
       toast.success("Deleting Track...");
-      await axios.post("https://tracks-2qce.onrender.com/api/tracks/deleteTrack", {
+      await axios.post("https://tracks-cwh2.onrender.com/api/tracks/deleteTrack", {
         trackId: Number(trackId),
         token,
       });
@@ -214,7 +214,7 @@ const Track = () => {
       if (!token) navigate("/");
       toast.success("Deleting Page...");
       const response = await axios.post(
-        "https://tracks-2qce.onrender.com/api/tracks/deletePage",
+        "https://tracks-cwh2.onrender.com/api/tracks/deletePage",
         {
           trackId: Number(trackId),
           pageId: id,
