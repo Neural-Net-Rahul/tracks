@@ -23,7 +23,7 @@ const WatchTrack = () => {
         try {
           setLoading(true);
           const response = await axios.post(
-            "https://tracks-2qce.onrender.com/api/tracks/noTokenWatchTrack",
+            "https://tracks-cwh2.onrender.com/api/tracks/noTokenWatchTrack",
             { trackId: Number(trackId) }
           );
           const track = response.data.track;
@@ -41,7 +41,7 @@ const WatchTrack = () => {
         try {
           setLoading(true);
           const response = await axios.post(
-            "https://tracks-2qce.onrender.com/api/tracks/tokenWatchTrack",
+            "https://tracks-cwh2.onrender.com/api/tracks/tokenWatchTrack",
             {
               trackId: Number(trackId),
               token,
@@ -74,7 +74,7 @@ const WatchTrack = () => {
       if (!token) navigate("/");
       toast.success("Searching for next page...");
       const response = await axios.post(
-        "https://tracks-2qce.onrender.com/api/tracks/nextPage",
+        "https://tracks-cwh2.onrender.com/api/tracks/nextPage",
         {
           order,
           onPage: false,
