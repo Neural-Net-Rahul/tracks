@@ -150,7 +150,7 @@ const WatchTrack = () => {
           <p>No pages available.</p>
         ) : (
           <ul className="list-none p-0">
-            {order.map((pageId, index) => {
+            {order.map((pageId) => {
               const ithPage: any = pages.find(
                 (pageObj: any) => pageObj.id === pageId
               );
