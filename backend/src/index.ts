@@ -1,4 +1,3 @@
-import path from 'path'
 import {app} from "./app";
 import dotenv from 'dotenv'
 
