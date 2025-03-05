@@ -18,7 +18,10 @@ app.get('*', (req, res) => {
 });
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: 'https://rtracks.onrender.com',  // Allow only this origin
+    credentials: true,  // Allow cookies if needed
+}));
 app.use(cookieParser());
 
 app.use('/api/users',userRoute);
