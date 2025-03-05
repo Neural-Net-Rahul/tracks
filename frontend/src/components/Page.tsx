@@ -79,7 +79,7 @@ const Page = () => {
       }
       toast.success("Prev Page...");
       const response = await axios.post(
-        "http://localhost:3000/api/tracks/prevPage",
+        "https://tracks-2qce.onrender.com/api/tracks/prevPage",
         {
           token,
           trackId,
@@ -107,7 +107,7 @@ const Page = () => {
         return;
       }
       toast.success("Saving...");
-      await axios.post("http://localhost:3000/api/tracks/savePage", {
+      await axios.post("https://tracks-2qce.onrender.com/api/tracks/savePage", {
         token,
         chapterName,
         pageId: Number(pageId),
@@ -127,7 +127,7 @@ const Page = () => {
       }
       toast.success("Next Page...");
       const response = await axios.post(
-        "http://localhost:3000/api/tracks/nextPage",
+        "https://tracks-2qce.onrender.com/api/tracks/nextPage",
         {
           token,
           onPage: true,
@@ -155,7 +155,7 @@ const Page = () => {
       }
       toast.success("Deleting...");
       const response = await axios.post(
-        "http://localhost:3000/api/tracks/deletePage",
+        "https://tracks-2qce.onrender.com/api/tracks/deletePage",
         {
           token,
           pageId,
@@ -182,7 +182,7 @@ const Page = () => {
       }
       toast.success("Creating next Page...");
       const response = await axios.post(
-        "http://localhost:3000/api/tracks/createPage",
+        "https://tracks-2qce.onrender.com/api/tracks/createPage",
         {
           token,
           onPage: true,
@@ -216,7 +216,7 @@ const Page = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3000/api/users/uploadImage", {
+      const response = await fetch("https://tracks-2qce.onrender.com/api/users/uploadImage", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
