@@ -25,7 +25,7 @@ const WatchPage = () => {
         try {
           setLoading(true);
           const response = await axios.post(
-            "http://localhost:3000/api/tracks/noTokenWatch",
+            "https://tracks-2qce.onrender.com/api/tracks/noTokenWatch",
             { pageId }
           );
           setChapterName(response.data.page.chapterName);
@@ -45,7 +45,7 @@ const WatchPage = () => {
         try {
           setLoading(true);
           const response = await axios.post(
-            "http://localhost:3000/api/tracks/tokenWatchPage",
+            "https://tracks-2qce.onrender.com/api/tracks/tokenWatchPage",
             {
               pageId: Number(pageId),
               token,
@@ -133,7 +133,7 @@ const WatchPage = () => {
       }
       toast.success("Loading Previous Page...");
       const response = await axios.post(
-        "http://localhost:3000/api/tracks/prevPage",
+        "https://tracks-2qce.onrender.com/api/tracks/prevPage",
         { token, trackId, pageId: Number(pageId), order }
       );
       const tId = response.data.trackId;
@@ -157,7 +157,7 @@ const WatchPage = () => {
       }
       toast.success("Loading Next Page...");
       const response = await axios.post(
-        "http://localhost:3000/api/tracks/nextPage",
+        "https://tracks-2qce.onrender.com/api/tracks/nextPage",
         { token, onPage: true, order, p_t_id: Number(pageId) }
       );
       if (response.status === 203) {
