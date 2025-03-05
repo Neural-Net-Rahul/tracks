@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -8,13 +8,21 @@ import { Trash2 } from "lucide-react";
 const Track = () => {
   const { trackId } = useParams();
   const navigate = useNavigate();
+
+  // Existing state variables
   const [trackName, setTrackName] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [order, setOrder] = useState<Number[]>([]);
   const [pages, setPages] = useState([]);
   const [chapterCount, setChapterCount] = useState(0);
-  const [loading,setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // New state for dark mode (default dark) and track image
+  const [darkMode, setDarkMode] = useState(true);
+  const [trackImage, setTrackImage] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const getTrackData = async () => {
@@ -24,7 +32,7 @@ const Track = () => {
         return;
       }
       try {
-        setLoading(loading => !loading)
+        setLoading((prev) => !prev);
         const response = await axios.post(
           "http://localhost:3000/api/tracks/trackData",
           { trackId, token }
@@ -33,22 +41,25 @@ const Track = () => {
         console.log("track", track);
 
         if (track) {
-          setLoading(loading => !loading);
+          setLoading((prev) => !prev);
           setTrackName(track.name || "");
           setTags(track.tags || []);
           setPages(track.pages || []);
           setOrder(track.order || []);
+          setImageUrl(track.image);
           setChapterCount(track.chaptersCount);
         }
       } catch (e) {
-        const obj = jwtDecode<{ id: string }>(token);
+        const obj = jwtDecode<{ id: string }>(
+          localStorage.getItem("token") || ""
+        );
         navigate(`/profile/${obj.id}`);
       }
     };
     getTrackData();
-  }, []);
+  }, [trackId, navigate]);
 
-
+  // Existing functions for tags and pages
   const handleTagAdd = () => {
     if (tagInput.trim() !== "") {
       setTags([...tags, tagInput.trim()]);
@@ -56,166 +67,188 @@ const Track = () => {
     }
   };
 
-  const handleTagDelete = (index:any) => {
+  const handleTagDelete = (index: any) => {
     setTags(tags.filter((_, i) => i !== index));
   };
 
-  const movePageUp = async(index:any) => {
+  const movePageUp = async (index: any) => {
     if (index === 0) return;
-    let newOrder = [...order];
+    const newOrder = [...order];
     [newOrder[index - 1], newOrder[index]] = [
       newOrder[index],
       newOrder[index - 1],
     ];
-    setOrder(() => newOrder);
+    setOrder(newOrder);
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/");
-      }
+      if (!token) navigate("/");
       await axios.post("http://localhost:3000/api/tracks/saveTrack", {
         name: trackName,
         tags,
-        order : newOrder,
+        order: newOrder,
         trackId,
         token,
       });
     } catch (e: any) {
-      if (e.response.status === 413) {
-        navigate("/");
-      }
+      if (e.response.status === 413) navigate("/");
       alert("Some error occurred");
     }
   };
 
-  const movePageDown = async (index:any) => {
+  const movePageDown = async (index: any) => {
     if (index === order.length - 1) return;
-    let newOrder = [...order];
+    const newOrder = [...order];
     [newOrder[index + 1], newOrder[index]] = [
       newOrder[index],
       newOrder[index + 1],
     ];
-    setOrder(() => newOrder);
+    setOrder(newOrder);
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/");
-      }
+      if (!token) navigate("/");
       await axios.post("http://localhost:3000/api/tracks/saveTrack", {
         name: trackName,
         tags,
-        order : newOrder,
+        order: newOrder,
         trackId,
         token,
       });
     } catch (e: any) {
-      if (e.response.status === 413) {
-        navigate("/");
-      }
+      if (e.response.status === 413) navigate("/");
       alert("Some error occurred");
     }
   };
 
-  const handleCreateFirstPage = async() => {
-    try{
-        const token = localStorage.getItem('token');
-        if (!token) {
-          navigate("/");
-        }
-        toast.success("Creating first page...");
-        const response = await axios.post('http://localhost:3000/api/tracks/createPage',{onPage:false, order, p_t_Id:trackId, trackId : Number(trackId), token});
-        const pageId = response.data.id;
-        navigate(`/page/${pageId}`);
-    }catch(e:any){
-        if(e.response.status === 413){
-            navigate('/')
-        }
-        alert('Error in creating page');
-    }
-  };
-
-  const handleSave = async() => {
-    try{
-        const token = localStorage.getItem('token');
-        if(!token){
-            navigate('/');
-        }
-        toast.success("Details Saved...");
-        await axios.post('http://localhost:3000/api/tracks/saveTrack',{
-            name:trackName, tags, order, trackId, token
-        })
-    }
-    catch(e:any){
-        if (e.response.status === 413) {
-          navigate("/");
-        }
-        alert('Some error occurred');
-    }
-  };
-
-  const handleNext = async() => {
+  const handleCreateFirstPage = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/");
+      if (!token) navigate("/");
+      toast.success("Creating first page...");
+      const response = await axios.post(
+        "http://localhost:3000/api/tracks/createPage",
+        {
+          onPage: false,
+          order,
+          p_t_Id: trackId,
+          trackId: Number(trackId),
+          token,
+        }
+      );
+      const pageId = response.data.pId;
+      navigate(`/page/${pageId}`);
+    } catch (e: any) {
+      if (e.response.status === 413) navigate("/");
+      alert("Error in creating page");
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('token') || '';
+      if (!token){ navigate("/");  return;}
+      toast.success("Details Saved...");
+      const formData = new FormData();
+      formData.append('name',trackName);
+      formData.append('tags',JSON.stringify(tags));
+      formData.append('order', JSON.stringify(order));
+      formData.append("trackId", trackId!);
+      if(trackImage){
+        formData.append("image", trackImage);
       }
-      toast.success("Searching for next page...");
-      const response = await axios.post("http://localhost:3000/api/tracks/nextPage", {
-        order, onPage: false, p_t_id:Number(trackId), token
+      await axios.post("http://localhost:3000/api/tracks/saveTrack", formData,{
+        headers:{
+          "Authorization":`Bearer ${token}`
+        }
       });
-      if(response.status === 202){
+    } catch (e: any) {
+      console.log(e);
+      if (e.response.status === 413) navigate("/");
+      alert("Some error occurred");
+    }
+  };
+
+  const handleNext = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) navigate("/");
+      toast.success("Searching for next page...");
+      const response = await axios.post(
+        "http://localhost:3000/api/tracks/nextPage",
+        {
+          order,
+          onPage: false,
+          p_t_id: Number(trackId),
+          token,
+        }
+      );
+      if (response.status === 202) {
         const id = response.data.id;
         navigate(`/page/${id}`);
       }
     } catch (e: any) {
-      if (e.response.status === 413) {
-        navigate("/");
-      }
+      if (e.response.status === 413) navigate("/");
       alert("Some error occurred");
     }
   };
 
   const handleDelete = async () => {
-    try{
-        const token = localStorage.getItem('token') || '';
-        if (!token) {
-          navigate("/");
-        }
-        toast.success("Deleting Track...");
-        await axios.post("http://localhost:3000/api/tracks/deleteTrack",{trackId:Number(trackId), token});
-        const obj = jwtDecode<{ id: string }>(token);
-        navigate(`/profile/${obj.id}`);
-    }
-    catch(e:any){
-        if (e.response.status === 413) {
-          navigate("/");
-        }
-        alert('Error while deleting Track');
+    try {
+      const token = localStorage.getItem("token") || "";
+      if (!token) navigate("/");
+      toast.success("Deleting Track...");
+      await axios.post("http://localhost:3000/api/tracks/deleteTrack", {
+        trackId: Number(trackId),
+        token,
+      });
+      const obj = jwtDecode<{ id: string }>(token);
+      navigate(`/profile/${obj.id}`);
+    } catch (e: any) {
+      if (e.response.status === 413) navigate("/");
+      alert("Error while deleting Track");
     }
   };
 
-  const  handlePageDelete = async (id:Number) => {
+  const handlePageDelete = async (id: Number) => {
     try {
       const token = localStorage.getItem("token") || "";
-      if (!token) {
-        navigate("/");
-      }
+      if (!token) navigate("/");
       toast.success("Deleting Page...");
-      const response = await axios.post("http://localhost:3000/api/tracks/deletePage", {
-        trackId: Number(trackId),
-        pageId : id, order,
-        token,
-      });
+      const response = await axios.post(
+        "http://localhost:3000/api/tracks/deletePage",
+        {
+          trackId: Number(trackId),
+          pageId: id,
+          order,
+          token,
+        }
+      );
       console.log(response.data);
       setOrder(response.data.newOrder);
     } catch (e: any) {
-      if (e.response.status === 413) {
-        navigate("/");
-      }
+      if (e.response.status === 413) navigate("/");
       alert("Error while deleting Page");
     }
-  }
+  };
 
+  // New function for dark mode toggle
+  const toggleDarkMode = () => {
+    setDarkMode((prevMode) => !prevMode);
+  };
+
+  const handleFileUploadClick = (e: any) => {
+    e.preventDefault();
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = (e: any) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setTrackImage(file);
+      setImageUrl(URL.createObjectURL(file));
+    }
+  };
+
+  // If loading, show spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -224,22 +257,59 @@ const Track = () => {
     );
   }
 
+  // Define button style for page navigation buttons based on darkMode
+  const pageButtonStyle = {
+    backgroundColor: darkMode ? "#444" : "#eee",
+    border: "none",
+    padding: "6px 10px",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontSize: "14px",
+    transition: "background-color 0.2s ease-in-out",
+    color: darkMode ? "#fff" : "#000",
+  };
+
   return (
-    <div className="track-container" style={{ fontFamily: "outfit" }}>
-      <h1 style={{ fontSize: "35px" }}>Track </h1>
+    <div
+      className={`track-container ${darkMode ? "dark-mode" : "light-mode"}`}
+      style={{ fontFamily: "outfit", minHeight: "100vh", padding: "20px" }}
+    >
+      <header
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
+        <h1 style={{ fontSize: "35px" }}>Track</h1>
+        <button
+          onClick={toggleDarkMode}
+          style={{
+            padding: "8px 12px",
+            border: "none",
+            borderRadius: "4px",
+            backgroundColor: darkMode ? "#f39c12" : "#007BFF",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          {darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        </button>
+      </header>
 
       {/* Track Name Section */}
       <div className="track-section">
-        <label htmlFor="trackName" className="track-label">
-          Track Name
-        </label>
+        <h2 style={{ fontSize: "20px" }}>
+          <label htmlFor="trackName" className="track-label">
+            Track Name
+          </label>
+        </h2>
         <input
           type="text"
           id="trackName"
           value={trackName}
-          onChange={(e) => {
-            setTrackName(e.target.value);
-          }}
+          onChange={(e) => setTrackName(e.target.value)}
           className="track-input"
           placeholder="Enter track name"
         />
@@ -275,6 +345,45 @@ const Track = () => {
         </div>
       </div>
 
+      {/* Track Image Section */}
+      <div className="image-upload-section" style={{ marginBottom: "30px" }}>
+        <h2 style={{ fontSize: "20px" }}>Track Image</h2>
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt="Track"
+            style={{
+              width: "100%",
+              maxWidth: "300px",
+              borderRadius: "8px",
+              marginBottom: "10px",
+            }}
+          />
+        ) : (
+          <p>No image uploaded</p>
+        )}
+        <button
+          onClick={handleFileUploadClick}
+          style={{
+            padding: "8px 12px",
+            border: "none",
+            borderRadius: "4px",
+            backgroundColor: darkMode ? "#007BFF" : "#f39c12",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          Upload Image
+        </button>
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handleImageChange}
+          style={{ display: "none" }}
+        />
+      </div>
+
       {/* Page Section */}
       <div className="page-section">
         <h2 style={{ fontSize: "20px" }}>Pages ({chapterCount})</h2>
@@ -284,7 +393,7 @@ const Track = () => {
             order of pages from here.
           </p>
         ) : (
-          <ul className="page-list">
+          <ul className="page-list" style={{ listStyle: "none", padding: 0 }}>
             {order.map((pageId, index) => {
               const ithPage: any = pages.find(
                 (pageObj: any) => pageObj.id === pageId
@@ -297,22 +406,22 @@ const Track = () => {
                     justifyContent: "space-between",
                     alignItems: "center",
                     padding: "10px",
-                    border: "1px solid #ddd",
+                    border: darkMode ? "1px solid #444" : "1px solid #ddd",
                     borderRadius: "8px",
                     marginBottom: "10px",
-                    backgroundColor: "#fff",
+                    backgroundColor: darkMode ? "#333" : "#fff",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
+                  <div style={{ display: "flex", flexDirection: "column" }}>
                     <span style={{ fontWeight: "bold", fontSize: "16px" }}>
                       {ithPage.chapterName}
                     </span>
-                    <div style={{ fontSize: "12px", color: "#666" }}>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: darkMode ? "#bbb" : "#666",
+                      }}
+                    >
                       <span>
                         Created: {new Date(ithPage.createdAt).toLocaleString()}
                       </span>
@@ -324,70 +433,20 @@ const Track = () => {
                   </div>
                   <div style={{ display: "flex", gap: "8px" }}>
                     <button
-                      onClick={() => 
-                          navigate(`/page/${ithPage.id}`)
-                      }
-                      onMouseEnter={(e) =>
-                        ((e.target as HTMLElement).style.backgroundColor =
-                          "#dddd")
-                      }
-                      onMouseLeave={(e) =>
-                        ((e.target as HTMLElement).style.backgroundColor =
-                          "#eeee")
-                      }
-                      style={{
-                        backgroundColor: "#eee",
-                        border: "none",
-                        padding: "6px 10px",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "14px",
-                        transition: "background-color 0.2s ease-in-out",
-                      }}
+                      onClick={() => navigate(`/page/${ithPage.id}`)}
+                      style={pageButtonStyle}
                     >
                       Go to page
                     </button>
                     <button
                       onClick={() => movePageUp(index)}
-                      onMouseEnter={(e) =>
-                        ((e.target as HTMLElement).style.backgroundColor =
-                          "#dddd")
-                      }
-                      onMouseLeave={(e) =>
-                        ((e.target as HTMLElement).style.backgroundColor =
-                          "#eeee")
-                      }
-                      style={{
-                        backgroundColor: "#eee",
-                        border: "none",
-                        padding: "6px 10px",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "14px",
-                        transition: "background-color 0.2s ease-in-out",
-                      }}
+                      style={pageButtonStyle}
                     >
                       ↑
                     </button>
                     <button
                       onClick={() => movePageDown(index)}
-                      onMouseEnter={(e) =>
-                        ((e.target as HTMLElement).style.backgroundColor =
-                          "#dddd")
-                      }
-                      onMouseLeave={(e) =>
-                        ((e.target as HTMLElement).style.backgroundColor =
-                          "#eeee")
-                      }
-                      style={{
-                        backgroundColor: "#eee",
-                        border: "none",
-                        padding: "6px 10px",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "14px",
-                        transition: "background-color 0.2s ease-in-out",
-                      }}
+                      style={pageButtonStyle}
                     >
                       ↓
                     </button>
@@ -396,16 +455,12 @@ const Track = () => {
                         background: "none",
                         border: "none",
                         cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
                       }}
                     >
                       <Trash2
                         size={18}
                         color="red"
-                        onClick={() => {
-                          handlePageDelete(ithPage.id);
-                        }}
+                        onClick={() => handlePageDelete(ithPage.id)}
                       />
                     </button>
                   </div>
@@ -417,35 +472,99 @@ const Track = () => {
       </div>
 
       {/* Button Section */}
-      <div className="button-section">
+      <div className="button-section" style={{ textAlign: "center" }}>
         <button
           onClick={(e) => {
             e.preventDefault();
             handleSave();
           }}
           className="btn save-btn"
-          style={{ background: "red" }}
+          style={{
+            padding: "10px 20px",
+            marginRight: "10px",
+            border: "1px solid #000",
+            background: "red",
+            color: "#fff",
+            cursor: "pointer",
+          }}
         >
           Save
         </button>
-        <button onClick={handleNext} className="btn next-btn">
+        <button
+          onClick={handleNext}
+          className="btn next-btn"
+          style={{
+            padding: "10px 20px",
+            marginRight: "10px",
+            border: "1px solid #000",
+            background: "#000",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+        >
           Next
         </button>
-        <button onClick={handleCreateFirstPage} className="btn create-btn">
+        <button
+          onClick={handleCreateFirstPage}
+          className="btn create-btn"
+          style={{
+            padding: "10px 20px",
+            marginRight: "10px",
+            border: "1px solid #000",
+            background: "#000",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+        >
           Create First Page
         </button>
-        <button onClick={()=>{
-            const token = localStorage.getItem('token') || '';
-            if(!token){
-                navigate('/');
-            }
-            const { id } = jwtDecode(token) as {id : Number};
+        <button
+          onClick={() => {
+            navigate('/');
+          }}
+          className="btn create-btn"
+          style={{
+            padding: "10px 20px",
+            marginRight: "10px",
+            border: "1px solid #000",
+            background: "#000",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          Home
+        </button>
+        <button
+          onClick={() => {
+            const token = localStorage.getItem("token") || "";
+            if (!token) navigate("/");
+            const { id } = jwtDecode(token) as { id: Number };
             toast.success("Going to Profile Page...");
-            navigate(`/profile/${id}`)
-        }} className="btn create-btn">
+            navigate(`/profile/${id}`);
+          }}
+          className="btn create-btn"
+          style={{
+            padding: "10px 20px",
+            marginRight: "10px",
+            border: "1px solid #000",
+            background: "#000",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+        >
           Profile Page
         </button>
-        <button onClick={handleDelete} className="btn delete-btn">
+        <button
+          onClick={handleDelete}
+          className="btn delete-btn"
+          style={{
+            padding: "10px 20px",
+            border: "1px solid #000",
+            background: "#fff",
+            color: "#000",
+            cursor: "pointer",
+          }}
+        >
           Delete
         </button>
       </div>
@@ -454,19 +573,22 @@ const Track = () => {
         .track-container {
           max-width: 800px;
           margin: 0 auto;
-          padding: 20px;
-          background: #fff;
-          color: #000;
-          font-family: Arial, sans-serif;
+          border-radius: 8px;
+          transition: background-color 0.3s, color 0.3s;
         }
-        h1,
-        h2 {
-          text-align: center;
+        .dark-mode {
+          background-color: #222;
+          color: #fff;
+        }
+        .light-mode {
+          background-color: #fff;
+          color: #000;
         }
         .track-section,
         .tag-section,
         .page-section,
-        .button-section {
+        .button-section,
+        .image-upload-section {
           margin-bottom: 30px;
         }
         .track-label {
@@ -474,24 +596,18 @@ const Track = () => {
           margin-bottom: 5px;
           display: block;
         }
-        .track-input {
+        .track-input,
+        .tag-input {
           width: 100%;
           padding: 10px;
           border: 1px solid #000;
-          background: #fff;
-          color: #000;
+          background: inherit;
+          color: inherit;
         }
         .tag-input-container {
           display: flex;
           gap: 10px;
           margin-bottom: 10px;
-        }
-        .tag-input {
-          flex: 1;
-          padding: 8px;
-          border: 1px solid #000;
-          background: #fff;
-          color: #000;
         }
         .tag-add-btn {
           padding: 8px 12px;
@@ -524,40 +640,8 @@ const Track = () => {
           list-style: none;
           padding: 0;
         }
-        .page-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 12px;
-          border: 1px solid #000;
-          margin-bottom: 8px;
-          background: #fff;
-        }
-        .page-controls {
-          display: flex;
-          gap: 5px;
-        }
-        .page-control-btn {
-          padding: 5px 10px;
-          border: 1px solid #000;
-          background: #000;
-          color: #fff;
-          cursor: pointer;
-        }
-        .button-section {
-          text-align: center;
-        }
-        .button-section .btn {
-          padding: 10px 20px;
-          margin: 0 10px 10px 0;
-          border: 1px solid #000;
-          background: #000;
-          color: #fff;
-          cursor: pointer;
-        }
-        .button-section .delete-btn {
-          background: #fff;
-          color: #000;
+        .btn {
+          transition: background-color 0.3s;
         }
       `}</style>
     </div>

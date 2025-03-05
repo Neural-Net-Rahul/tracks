@@ -9,8 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tokenWatchPage = exports.noTokenWatch = exports.getEditorApiKey = exports.sentPageData = exports.createPage = exports.deletePage = exports.deleteTrack = exports.nextPage = exports.savePage = exports.saveTrack = exports.prevPage = exports.trackData = void 0;
+exports.getAllTracks = exports.tokenWatchTrack = exports.noTokenWatchTrack = exports.tokenWatchPage = exports.noTokenWatch = exports.getEditorApiKey = exports.sentPageData = exports.createPage = exports.deletePage = exports.deleteTrack = exports.nextPage = exports.savePage = exports.saveTrack = exports.prevPage = exports.trackData = void 0;
 const app_1 = require("../app");
+const cloudinary_1 = require("../utils/cloudinary");
 const trackData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { trackId } = req.body;
@@ -82,8 +83,17 @@ const prevPage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.prevPage = prevPage;
 const saveTrack = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
-        const { name, tags, order, trackId } = req.body;
+        let { name, tags, order, trackId } = req.body;
+        order = JSON.parse(order);
+        tags = JSON.parse(tags);
+        const image = ((_b = (_a = req.files.image) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.path) || '';
+        let cloudinaryImageUrl = '';
+        if (image) {
+            cloudinaryImageUrl = yield (0, cloudinary_1.uploadOnCloudinary)(image);
+            cloudinaryImageUrl = cloudinaryImageUrl.url;
+        }
         yield app_1.client.track.update({
             where: {
                 id: Number(trackId),
@@ -93,6 +103,7 @@ const saveTrack = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 tags,
                 order,
                 chaptersCount: order.length,
+                image: cloudinaryImageUrl
             },
         });
         res.status(200).json({ message: "Your track is saved" });
@@ -438,3 +449,100 @@ const tokenWatchPage = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.tokenWatchPage = tokenWatchPage;
+const noTokenWatchTrack = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let { trackId } = req.body;
+    const track = yield app_1.client.track.findFirst({
+        where: {
+            id: trackId,
+        },
+        include: {
+            pages: true
+        }
+    });
+    if (!track) {
+        res.status(501).json({ message: "Track does not exist" }); // send to home page in frontend
+        return;
+    }
+    const isPublic = track.isPublic;
+    if (!isPublic) {
+        res
+            .status(502)
+            .json({ message: "You are not allowed to access this track" }); // send to home page in frontend
+        return;
+    }
+    res.status(200).json({ message: "Sending track...", track });
+    return;
+});
+exports.noTokenWatchTrack = noTokenWatchTrack;
+const tokenWatchTrack = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { trackId } = req.body;
+        const userId = req.id;
+        const track = yield app_1.client.track.findFirst({
+            where: {
+                id: trackId,
+            },
+            include: {
+                pages: true
+            }
+        });
+        const case1 = track.userId === userId;
+        if (case1 || (track === null || track === void 0 ? void 0 : track.isPublic)) {
+            res.status(200).json({
+                message: "Giving page data",
+                track
+            });
+            return;
+        }
+        const exists = yield app_1.client.trackEditAccess.findFirst({
+            where: {
+                trackId,
+                userId,
+            },
+        });
+        if (exists) {
+            res.status(200).json({
+                message: "Giving page data",
+                track
+            });
+        }
+        const boughtExist = yield app_1.client.trackBought.findFirst({
+            where: {
+                trackId,
+                userId,
+            },
+        });
+        if (boughtExist) {
+            res.status(200).json({
+                message: "Giving page data",
+                track
+            });
+            return;
+        }
+        res.status(500).json({
+            message: "Do not have right to access",
+        });
+        return;
+    }
+    catch (e) {
+        res.status(500).json({ message: "Some error occurred" });
+        return;
+    }
+});
+exports.tokenWatchTrack = tokenWatchTrack;
+const getAllTracks = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const tracks = yield app_1.client.track.findMany({
+            where: {
+                isPublic: true
+            }
+        });
+        res.status(200).json({ message: "Sending all tracks", tracks });
+        return;
+    }
+    catch (e) {
+        res.status(500).json({ message: "Error in fetching tracks" });
+        return;
+    }
+});
+exports.getAllTracks = getAllTracks;

@@ -1,5 +1,6 @@
 import { Request, Response, RequestHandler } from "express";
 import { client } from "../app";
+import { uploadOnCloudinary } from "../utils/cloudinary";
 
 interface AuthenticatedRequest extends Request {
   id: number;
@@ -89,7 +90,15 @@ const saveTrack: RequestHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, tags, order, trackId } = req.body;
+    let { name, tags, order, trackId } = req.body;
+    order = JSON.parse(order);
+    tags = JSON.parse(tags);
+    const image = (req.files as { [fieldname: string]: Express.Multer.File[] }).image?.[0]?.path || '';
+    let cloudinaryImageUrl:any = '';
+    if(image){
+      cloudinaryImageUrl = await uploadOnCloudinary(image);
+      cloudinaryImageUrl = cloudinaryImageUrl.url
+    }
     await client.track.update({
       where: {
         id: Number(trackId),
@@ -99,6 +108,7 @@ const saveTrack: RequestHandler = async (
         tags,
         order,
         chaptersCount: order.length,
+        image: cloudinaryImageUrl
       },
     });
     res.status(200).json({ message: "Your track is saved" });
@@ -462,6 +472,109 @@ const tokenWatchPage: RequestHandler = async (
   }
 };
 
+const noTokenWatchTrack: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  let { trackId } = req.body;
+  const track = await client.track.findFirst({
+    where: {
+      id: trackId,
+    },
+    include:{
+      pages:true
+    }
+  });
+  if (!track) {
+    res.status(501).json({ message: "Track does not exist" }); // send to home page in frontend
+    return;
+  }
+  const isPublic = track.isPublic;
+  if (!isPublic) {
+    res
+      .status(502)
+      .json({ message: "You are not allowed to access this track" }); // send to home page in frontend
+    return;
+  }
+  res.status(200).json({ message: "Sending track...", track });
+  return;
+};
+
+const tokenWatchTrack: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { trackId } = req.body;
+    const userId = (req as AuthenticatedRequest).id;
+    
+    const track = await client.track.findFirst({
+      where: {
+        id: trackId,
+      },
+      include:{
+        pages:true
+      }
+    });
+
+    const case1 = track!.userId === userId;
+    if (case1 || track?.isPublic) {
+      res.status(200).json({
+        message: "Giving page data",
+        track
+      });
+      return;
+    }
+    const exists = await client.trackEditAccess.findFirst({
+      where: {
+        trackId,
+        userId,
+      },
+    });
+    if (exists) {
+      res.status(200).json({
+        message: "Giving page data",
+        track
+      });
+    }
+
+    const boughtExist = await client.trackBought.findFirst({
+      where: {
+        trackId,
+        userId,
+      },
+    });
+    if (boughtExist) {
+      res.status(200).json({
+        message: "Giving page data",
+        track
+      });
+      return;
+    }
+    res.status(500).json({
+      message: "Do not have right to access",
+    });
+    return;
+  } catch (e) {
+    res.status(500).json({ message: "Some error occurred" });
+    return;
+  }
+};
+
+const getAllTracks:RequestHandler = async(req:Request,res:Response):Promise<void> => {
+  try{
+    const tracks = await client.track.findMany({
+      where:{
+        isPublic:true
+      }
+    })
+    res.status(200).json({message:"Sending all tracks", tracks});
+    return; 
+  }catch(e){
+    res.status(500).json({message:"Error in fetching tracks"});
+    return;
+  }
+}
 
 export {
   trackData,
@@ -476,4 +589,7 @@ export {
   getEditorApiKey,
   noTokenWatch,
   tokenWatchPage,
+  noTokenWatchTrack,
+  tokenWatchTrack,
+  getAllTracks
 };

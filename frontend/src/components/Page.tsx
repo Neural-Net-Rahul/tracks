@@ -198,7 +198,7 @@ const Page = () => {
 
   
   const handleGoToTrack = () => {
-    navigate(`/track/${trackId}`);
+    navigate(`/create/${trackId}`);
   };
 
   return (

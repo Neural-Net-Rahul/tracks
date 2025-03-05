@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { jsPDF } from "jspdf";
@@ -33,7 +33,7 @@ const WatchPage = () => {
           setTrackId(response.data.page.trackId);
           setOrder(response.data.order);
           setPageNo(response.data.pageNo);
-          setLoading(false)
+          setLoading(false);
         } catch (e:any) {
           setLoading(false);
           if (e.response && e.response.status === 500) {
@@ -82,7 +82,7 @@ const WatchPage = () => {
         toast.error("Content not available for PDF generation.");
         return;
       }
-      toast.success("Downloading pdf...")
+      toast.success("Downloading pdf...");
       const images = pdfContent.getElementsByTagName("img");
       await Promise.all(
         [...images].map(
@@ -94,26 +94,22 @@ const WatchPage = () => {
         )
       );
 
-      const canvas = await html2canvas(pdfContent, { scale: 2 , useCORS:true});
+      const canvas = await html2canvas(pdfContent, { scale: 2, useCORS: true });
       const imgData = canvas.toDataURL("image/png");
 
-      // Initialize jsPDF with "pt" units.
       const pdf = new jsPDF("p", "pt", "a4");
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
-      // Determine the scaled height of the image in the PDF while preserving aspect ratio.
       const imgProps = pdf.getImageProperties(imgData);
       const imgPDFHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
       let heightLeft = imgPDFHeight;
       let position = 0;
 
-      // Add the first page with the image. Any overflow beyond the first page will be handled next.
       pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgPDFHeight);
       heightLeft -= pdfHeight;
 
-      // If the content exceeds one page, append additional pages while shifting the image position.
       while (heightLeft > 0) {
         position = heightLeft - imgPDFHeight;
         pdf.addPage();
@@ -121,7 +117,6 @@ const WatchPage = () => {
         heightLeft -= pdfHeight;
       }
 
-      // Save the PDF with the chapter name or a default filename if not available.
       pdf.save(`${chapterName || "document"}.pdf`);
     } catch (error) {
       console.error("PDF Generation Error:", error);
@@ -139,12 +134,7 @@ const WatchPage = () => {
       toast.success("Loading Previous Page...");
       const response = await axios.post(
         "http://localhost:3000/api/tracks/prevPage",
-        {
-          token,
-          trackId,
-          pageId: Number(pageId),
-          order,
-        }
+        { token, trackId, pageId: Number(pageId), order }
       );
       const tId = response.data.trackId;
       const pPageId = response.data.prevPageId;
@@ -168,12 +158,7 @@ const WatchPage = () => {
       toast.success("Loading Next Page...");
       const response = await axios.post(
         "http://localhost:3000/api/tracks/nextPage",
-        {
-          token,
-          onPage: true,
-          order,
-          p_t_id: Number(pageId),
-        }
+        { token, onPage: true, order, p_t_id: Number(pageId) }
       );
       if (response.status === 203) {
         toast.info("Next Page does not exist");
@@ -195,66 +180,73 @@ const WatchPage = () => {
 
   return (
     <div
-      className={`min-h-screen p-6 w-full transition-colors duration-300 ${
+      className={`min-h-screen w-full transition-colors duration-300 ${
         darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
       }`}
     >
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <div className="text-xl font-bold">Page No: {pageNo || "-"}</div>
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col">
+      <header className="container mx-auto py-6 px-4">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h2 className="text-2xl font-bold">Page No: {pageNo || "-"}</h2>
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col items-center">
+              <button
+                className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded shadow transition-colors duration-300"
+                onClick={handleDownloadPDF}
+              >
+                Download PDF
+              </button>
+              <span className="mt-1 text-sm italic">
+                Videos may not available in pdf.
+              </span>
+            </div>
             <button
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded shadow transition-colors duration-300"
-              onClick={handleDownloadPDF}
+              className={`px-5 py-2 border rounded mb-6 ${
+                darkMode
+                  ? "bg-orange-400 text-black border-transparent hover:bg-orange-500"
+                  : "bg-black text-white border-transparent hover:bg-gray-800"
+              }`}
+              onClick={() => setDarkMode(!darkMode)}
             >
-              Download PDF
+              {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
             </button>
-            <div className="text-sm">Vidoes may not available in pdf.</div>
           </div>
-          <button
-            className={`px-4 py-2 border rounded transition-colors duration-300 mb-5 ${
-              darkMode
-                ? "bg-orange-400 text-black border-transparent hover:bg-orange-500"
-                : "bg-black text-white border-transparent hover:bg-gray-800"
-            }`}
-            onClick={() => setDarkMode(!darkMode)}
-          >
-            {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4">
+        <section
+          id="pdfContent"
+          className={`border rounded-lg shadow-xl p-8 mb-16 ${
+            darkMode ? "bg-gray-800 text-white" : "bg-white text-black"
+          }`}
+        >
+          <h1 className="text-3xl font-extrabold text-center mb-6">
+            {chapterName}
+          </h1>
+          <div
+            className="prose max-w-none"
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
+        </section>
+      </main>
+
+      <footer className="fixed bottom-0 left-0 right-0 bg-opacity-90 shadow-md">
+        <div
+          className={`flex justify-center gap-6 py-4 ${
+            darkMode ? "bg-gray-900" : "bg-gray-100"
+          }`}
+        >
+          <button onClick={handlePrevious} className={navButtonClass}>
+            Previous
+          </button>
+          <button onClick={handleNext} className={navButtonClass}>
+            Next
+          </button>
+          <button onClick={handleGoToTrack} className={navButtonClass}>
+            Go to Track
           </button>
         </div>
-      </div>
-
-      <div
-        id="pdfContent"
-        className={`border rounded shadow-lg p-6 mb-20 ${
-          darkMode ? "bg-gray-800 text-white" : "bg-white text-black"
-        }`}
-      >
-        <h1 className="text-2xl font-semibold text-center mb-4">
-          {chapterName}
-        </h1>
-        <div
-          className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: content }}
-        />
-      </div>
-
-      <div
-        className={`fixed bottom-0 left-0 right-0 p-4 flex justify-center gap-4 ${
-          darkMode ? "bg-gray-900" : "bg-gray-100"
-        } shadow-md`}
-      >
-        <button onClick={handlePrevious} className={navButtonClass}>
-          Previous
-        </button>
-        <button onClick={handleNext} className={navButtonClass}>
-          Next
-        </button>
-        <button onClick={handleGoToTrack} className={navButtonClass}>
-          Go to Track
-        </button>
-      </div>
+      </footer>
     </div>
   );
 };

@@ -19,6 +19,7 @@ model User {
   contributedTracks TrackContributors[]
   editAccess     TrackEditAccess[]  
   boughtTracks   TrackBought[] 
+  requestEditAccess RequestEditAccess[]
 }
 
 model Track {
@@ -37,6 +38,8 @@ model Track {
   comments       Comments[]
   order          Int[]
   pages          Page[]
+  image          String?
+  requestEditAccess RequestEditAccess[]
 
   isPaid         Boolean  @default(false)
   isPublic       Boolean  @default(true)
@@ -47,6 +50,16 @@ model Track {
 model TrackContributors {
   trackId Int
   userId  Int
+  track   Track @relation(fields: [trackId], references: [id])
+  user    User  @relation(fields: [userId], references: [id])
+
+  @@id([trackId, userId])
+}
+
+model RequestEditAccess {
+  trackId Int
+  userId  Int
+  message String?
   track   Track @relation(fields: [trackId], references: [id])
   user    User  @relation(fields: [userId], references: [id])
 
